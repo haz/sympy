@@ -217,6 +217,22 @@ class Number(Atom, Expr):
         # a -> c * t
         return self, tuple()
 
+    @property
+    def is_negative(self):
+        return self.evalf() < 0
+
+    @property
+    def is_positive(self):
+        return self.evalf() > 0
+
+    @property
+    def is_nonnegative(self):
+        return self.evalf() >= 0
+
+    @property
+    def is_nonpositive(self):
+        return self.evalf() <= 0
+
 class Real(Number):
     """
     Represents a floating point number. It is capable of representing
@@ -1048,14 +1064,6 @@ class Integer(Rational):
     @property
     def is_odd(self):
         return self.p % 2 == 1
-
-    @property
-    def is_negative(self):
-        return self.evalf() < 0
-
-    @property
-    def is_positive(self):
-        return self.evalf() > 0
 
     def gcdex(a, b):
         """Extended Euclidean Algorithm. """

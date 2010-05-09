@@ -916,6 +916,22 @@ class Expr(Basic, EvalfMixin):
     def is_real(self):
         return False
 
+    @property
+    def is_nonnegative(self):
+        return False
+
+    @property
+    def is_nonpositive(self):
+        return False
+
+    @property
+    def is_commutative(self):
+        return False
+
+    @property
+    def is_unbounded(self):
+        return False
+
 from mul import Mul
 from power import Pow
 from add import Add

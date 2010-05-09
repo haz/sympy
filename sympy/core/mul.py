@@ -315,7 +315,7 @@ class Mul(AssocOp):
                     # (a*b)**2 -> a**2 * b**2
                     return Mul(*[s**e for s in b.args])
 
-                if e.is_rational:
+                if e.is_Rational:
                     coeff, rest = b.as_coeff_terms()
                     unk=[]
                     nonneg=[]
@@ -484,7 +484,7 @@ class Mul(AssocOp):
                 plain = Mul(*plain)
                 return Add(*[Mul(plain, term) for term in terms])
             else:
-                return Mul(*plain, **self.assumptions0)
+                return Mul(*plain)
 
     def _eval_expand_multinomial(self, deep=True, **hints):
         sargs, terms = self.args, []
