@@ -932,6 +932,14 @@ class Expr(Basic, EvalfMixin):
     def is_unbounded(self):
         return False
 
+    @property
+    def is_comparable(self):
+        return False
+
+    @property
+    def is_imaginary(self):
+        return False
+
 from mul import Mul
 from power import Pow
 from add import Add
