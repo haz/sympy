@@ -227,11 +227,11 @@ class Number(Atom, Expr):
 
     @property
     def is_nonnegative(self):
-        return self.evalf() >= 0
+        return not self.is_negative
 
     @property
     def is_nonpositive(self):
-        return self.evalf() <= 0
+        return not self.is_positive
 
 class Real(Number):
     """
@@ -1538,6 +1538,14 @@ class NumberSymbol(Atom, Expr):
         return (-self) < (-other)
     def __ge__(self, other):
         return (-self) <= (-other)
+
+    @property
+    def is_nonnegative(self):
+        return not self.is_negative
+
+    @property
+    def is_nonpositive(self):
+        return not self.is_positive
 
 
 class Exp1(NumberSymbol):
