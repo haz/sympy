@@ -896,6 +896,9 @@ class Expr(Basic, EvalfMixin):
                     expr = func(deep=deep, **hints)
         return expr
 
+    def is_even(self):
+        return False
+
 from mul import Mul
 from power import Pow
 from add import Add
