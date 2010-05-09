@@ -585,14 +585,15 @@ class Rational(Number):
         if isinstance(other, Real):
             return other + self
         if isinstance(other, Rational):
-            if self.is_unbounded:
-                if other.is_bounded:
-                    return self
-                elif self==other:
-                    return self
-            else:
-                if other.is_unbounded:
-                    return other
+            # FIXME
+            #if self.is_unbounded:
+            #    if other.is_bounded:
+            #        return self
+            #    elif self==other:
+            #        return self
+            #else:
+            #    if other.is_unbounded:
+            #        return other
             return Rational(self.p * other.q + self.q * other.p, self.q * other.q)
         return Number.__add__(self, other)
 
@@ -661,7 +662,7 @@ class Rational(Number):
             return other.__eq__(self)
         if isinstance(other, FunctionClass): #cos as opposed to cos(x)
             return False
-        if other.is_comparable and not isinstance(other, Rational): other = other.evalf()
+        if other.is_number and not isinstance(other, Rational): other = other.evalf()
         if isinstance(other, Number):
             if isinstance(other, Real):
                 return bool(mlib.mpf_eq(self._as_mpf_val(other._prec), other._mpf_))
@@ -968,7 +969,7 @@ class Integer(Rational):
             # simplify when exp is even
             # (-2) ** k --> 2 ** k
             c,t = b.as_coeff_terms()
-            if e.is_even() and isinstance(c, Number) and c < 0:
+            if e.is_even and isinstance(c, Number) and c < 0:
                 return (-c * Mul(*t)) ** e
         if not isinstance(e, Rational): return
         if e is S.Half and b < 0:
@@ -1040,9 +1041,21 @@ class Integer(Rational):
         s, _, h = a.gcdex(b)
         return s, h
 
+    @property
     def is_even(self):
-        # FIXME: implement this
-        return False
+        return self.p % 2 == 0
+
+    @property
+    def is_odd(self):
+        return self.p % 2 == 1
+
+    @property
+    def is_negative(self):
+        return self.evalf() < 0
+
+    @property
+    def is_positive(self):
+        return self.evalf() > 0
 
     def gcdex(a, b):
         """Extended Euclidean Algorithm. """

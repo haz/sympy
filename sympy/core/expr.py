@@ -896,7 +896,24 @@ class Expr(Basic, EvalfMixin):
                     expr = func(deep=deep, **hints)
         return expr
 
+    @property
     def is_even(self):
+        return False
+
+    @property
+    def is_odd(self):
+        return False
+
+    @property
+    def is_positive(self):
+        return False
+
+    @property
+    def is_negative(self):
+        return False
+
+    @property
+    def is_real(self):
         return False
 
 from mul import Mul
