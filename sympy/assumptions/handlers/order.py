@@ -11,7 +11,7 @@ from sympy.core import C
 
 class AskNegativeHandler(CommonHandler):
     """
-    This is called by ask() when key='negative'
+    This is called by ask() when key='nonpositive'
 
     Test that an expression is less than or equal to zero.
 
@@ -91,7 +91,7 @@ class AskNegativeHandler(CommonHandler):
 
 class AskNonZeroHandler(CommonHandler):
     """
-    Handler for key 'zero'
+    Handler for key 'nonzero'
     Test that an expression is not identically zero
     """
 
@@ -138,7 +138,7 @@ class AskNonZeroHandler(CommonHandler):
 
 class AskPositiveHandler(CommonHandler):
     """
-    Handler for key 'positive'
+    Handler for key 'nonnegative'
     Test that an expression is greater than or equal to zero
     """
 
@@ -204,14 +204,14 @@ class AskPositiveHandler(CommonHandler):
     @staticmethod
     def Pow(expr, assumptions):
         if expr.is_number:
-            return expr.evalf() > 0
+            return AskPositiveHandler._number(expr, assumptions)
         if ask(expr.base, Q.nonnegative, assumptions):
             return True
-        if ask(expr.base, Q.negative, assumptions):
+        if ask(expr.base, Q.real, assumptions):
             if ask(expr.exp, Q.even, assumptions):
                 return True
-            if ask(expr.exp, Q.even, assumptions):
-                return False
+        if ask(expr.base, Q.negative, assumptions):
+            return refine_logic(Q.even(expr.exp), assumptions)
 
     @staticmethod
     def exp(expr, assumptions):
@@ -224,4 +224,4 @@ class AskPositiveHandler(CommonHandler):
 
     @staticmethod
     def abs(expr, assumptions):
-        return ask(expr, Q.nonzero, assumptions)
+        return True

@@ -814,6 +814,11 @@ def test_odd():
 
     assert ask(abs(x), Q.odd, Assume(x, Q.odd)) == True
 
+@XFAIL
+def test_odd_failing():
+    x = symbols('x')
+    assert ask(x/3, Q.odd, Assume(x, Q.even)) == False
+
 def test_prime():
     x, y = symbols('x y')
     assert ask(x, Q.prime, Assume(x, Q.prime)) == True
@@ -863,6 +868,36 @@ def test_positive():
     #absolute value
     assert ask(abs(x), Q.positive) == None # abs(0) = 0
     assert ask(abs(x), Q.positive, Assume(x, Q.positive)) == True
+
+def test_nonnegative():
+    x, y, z, w = symbols('xyzw')
+    assert ask(x, Q.nonnegative, Assume(x, Q.positive)) == True
+    assert ask(x, Q.nonnegative, Assume(x, Q.negative)) == False
+    assert ask(x, Q.nonnegative, Assume(x, Q.nonzero)) == None
+
+    assert ask(-x, Q.nonnegative, Assume(x, Q.positive)) == False
+    assert ask(-x, Q.nonnegative, Assume(x, Q.negative)) == True
+
+    assert ask(x+y, Q.nonnegative, Q.nonnegative(x) & Q.nonnegative(y)) == True
+    assert ask(x+y, Q.nonnegative, Assume(x, Q.positive) & \
+                     Assume(y, Q.negative)) == None
+
+    assert ask(2*x,  Q.nonnegative, Assume(x, Q.nonnegative)) == True
+    assumptions =  Assume(x, Q.positive) & Assume(y, Q.negative) & \
+                    Assume(z, Q.negative) & Assume(w, Q.positive)
+    assert ask(x*y*z,  Q.nonnegative)  == None
+    assert ask(x*y*z,  Q.nonnegative, assumptions) == True
+    assert ask(-x*y*z, Q.nonnegative, assumptions) == False
+
+    assert ask(x**2, Q.nonnegative, Assume(x, Q.real)) == True
+
+    #exponential
+    assert ask(exp(x),     Q.nonnegative, Assume(x, Q.real)) == True
+    assert ask(x + exp(x), Q.nonnegative, Assume(x, Q.real)) == None
+
+    #absolute value
+    assert ask(abs(x), Q.nonnegative) == True
+
 
 @XFAIL
 def test_positive_xfail():
@@ -917,7 +952,7 @@ def test_real():
 def test_real_products():
     x,y,n,p = symbols('x y n p')
     assert ask(Q.real(x*y), assumptions = Q.real(x) & ~Q.real(y)) == False
-    assert ask(Q.real(y*n*p), 
+    assert ask(Q.real(y*n*p),
             assumptions = ~Q.real(y) & Q.positive(p) & Q.negative(n)) == False
 
 def test_algebraic():
