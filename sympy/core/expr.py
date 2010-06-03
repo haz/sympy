@@ -920,7 +920,24 @@ class AtomicExpr(Atom, Expr):
     def _eval_nseries(self, x, x0, n):
         return self
 
+    @property
     def is_even(self):
+        return False
+    
+    @property
+    def is_odd(self):
+        return False
+
+    @property
+    def is_positive(self):
+        return False
+
+    @property
+    def is_negative(self):
+        return False
+
+    @property
+    def is_real(self):
         return False
 
 
