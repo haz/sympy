@@ -920,6 +920,9 @@ class AtomicExpr(Atom, Expr):
     def _eval_nseries(self, x, x0, n):
         return self
 
+    def is_even(self):
+        return False
+
 
 from mul import Mul
 from power import Pow

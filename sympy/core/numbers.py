@@ -982,7 +982,7 @@ class Integer(Rational):
             # simplify when exp is even
             # (-2) ** k --> 2 ** k
             c,t = b.as_coeff_terms()
-            if e.is_even and isinstance(c, Number) and c < 0:
+            if e.is_even() and isinstance(c, Number) and c < 0:
                 return (-c * Mul(*t)) ** e
         if not isinstance(e, Rational):
             return
@@ -1055,6 +1055,10 @@ class Integer(Rational):
         """Half Extended Euclidean Algorithm. """
         s, _, h = a.gcdex(b)
         return s, h
+
+    def is_even(self):
+        # FIXME: implement this
+        return False
 
     def gcdex(a, b):
         """Extended Euclidean Algorithm. """

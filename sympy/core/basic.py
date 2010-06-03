@@ -1,12 +1,11 @@
 """Base class for all objects in sympy"""
 
 from decorators import _sympifyit
-from assumptions import AssumeMeths, make__get_assumption
 from cache import cacheit
 from core import BasicMeta, BasicType, C
 from sympify import _sympify, sympify, SympifyError
 
-class Basic(AssumeMeths):
+class Basic(object):
     """
     Base class for all objects in sympy.
 
@@ -69,98 +68,8 @@ class Basic(AssumeMeths):
     def __new__(cls, *args, **assumptions):
         obj = object.__new__(cls)
 
-        # FIXME we are slowed a *lot* by Add/Mul passing is_commutative as the
-        # only assumption.
-        #
-        # .is_commutative is not an assumption -- it's like typeinfo!!!
-        # we should remove it.
-
-        # initially assumptions are shared between instances and class
-        obj._assumptions  = cls.default_assumptions
-        obj._a_inprogress = []
-
-        # NOTE this could be made lazy -- probably not all instances will need
-        # fully derived assumptions?
-        if assumptions:
-            obj._learn_new_facts(assumptions)
-            #                      ^
-            # FIXME this is slow   |    another NOTE: speeding this up is *not*
-            #        |             |    important. say for %timeit x+y most of
-            # .------'             |    the time is spent elsewhere
-            # |                    |
-            # |  XXX _learn_new_facts  could be asked about what *new* facts have
-            # v  XXX been learned -- we'll need this to append to _hashable_content
-            basek = set(cls.default_assumptions.keys())
-            k2    = set(obj._assumptions.keys())
-            newk  = k2.difference(basek)
-
-            obj._assume_type_keys = frozenset(newk)
-        else:
-            obj._assume_type_keys = None
-
         obj._mhash = None # will be set by __hash__ method.
         obj._args = args  # all items in args must be Basic objects
-        return obj
-
-
-    # XXX better name?
-    @property
-    def assumptions0(self):
-        """
-        Return object `type` assumptions.
-
-        For example:
-
-          Symbol('x', real=True)
-          Symbol('x', integer=True)
-
-        are different objects. In other words, besides Python type (Symbol in
-        this case), the initial assumptions are also forming their typeinfo.
-
-        Example:
-
-        >>> from sympy import Symbol
-        >>> from sympy.abc import x
-        >>> x.assumptions0
-        {}
-        >>> x = Symbol("x", positive=True)
-        >>> x.assumptions0
-        {'commutative': True, 'complex': True, 'imaginary': False,
-        'negative': False, 'nonnegative': True, 'nonpositive': False,
-        'nonzero': True, 'positive': True, 'real': True, 'zero': False}
-
-        """
-
-        cls = type(self)
-        A   = self._assumptions
-
-        # assumptions shared:
-        if A is cls.default_assumptions or (self._assume_type_keys is None):
-            assumptions0 = {}
-        else:
-            assumptions0 = dict( (k, A[k]) for k in self._assume_type_keys )
-
-        return assumptions0
-
-
-    def new(self, *args):
-        """
-        Create new 'similar' object.
-
-        this is conceptually equivalent to:
-
-          type(self) (*args)
-
-        but takes type assumptions into account. See also: assumptions0
-
-        Example:
-
-        >>> from sympy.abc import x
-        >>> x.new("x")
-        x
-
-        """
-        obj = self.func(*args, **self.assumptions0)
         return obj
 
 
@@ -173,10 +82,6 @@ class Basic(AssumeMeths):
     #     raise Warning('no way, *all* attribute access will be 2.5x slower')
 
     # here is what we do instead:
-    for k in AssumeMeths._assume_defined:
-        exec "is_%s  = property(make__get_assumption('Basic', '%s'))" % (k,k)
-    del k
-
     # NB: there is no need in protective __setattr__
 
     def __getnewargs__(self):
@@ -191,17 +96,7 @@ class Basic(AssumeMeths):
         if h is None:
             h = (type(self).__name__,) + self._hashable_content()
 
-            if self._assume_type_keys is not None:
-                a = []
-                kv= self._assumptions
-                for k in sorted(self._assume_type_keys):
-                    a.append( (k, kv[k]) )
-
-                h = hash( h + tuple(a) )
-
-            else:
-                h = hash( h )
-
+            h = hash( h )
 
             self._mhash = h
             return h
@@ -1027,7 +922,7 @@ class Basic(AssumeMeths):
         """
         if hints.get('deep', True):
             terms = [ term.doit(**hints) for term in self.args ]
-            return self.new(*terms)
+            return self.__class__(*terms)
         else:
             return self
 
@@ -1036,7 +931,7 @@ class Basic(AssumeMeths):
             return self
         sargs = self.args
         terms = [ t._eval_rewrite(pattern, rule, **hints) for t in sargs ]
-        return self.new(*terms)
+        return self.__class__(*terms)
 
     def rewrite(self, *args, **hints):
         """Rewrites expression containing applications of functions
