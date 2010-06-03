@@ -11,7 +11,7 @@ class RoundFunction(Function):
 
     @classmethod
     def eval(cls, arg):
-        if arg.is_integer:
+        if arg.is_Integer:
             return arg
         if arg.is_imaginary:
             return cls(C.im(arg))*S.ImaginaryUnit
@@ -30,7 +30,7 @@ class RoundFunction(Function):
             terms = [arg]
 
         for t in terms:
-            if t.is_integer or (t.is_imaginary and C.im(t).is_integer):
+            if t.is_Integer or (t.is_imaginary and C.im(t).is_Integer):
                 ipart += t
             elif t.atoms(C.Symbol):
                 spart += t
