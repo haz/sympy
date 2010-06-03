@@ -96,7 +96,7 @@ class Pow(Expr):
     def _eval_power(self, other):
         if other == S.NegativeOne:
             return Pow(self.base, self.exp * other)
-        if self.exp.is_integer and other.is_integer:
+        if self.exp.is_Integer and other.is_Integer:
             return Pow(self.base, self.exp * other)
         if self.base.is_nonnegative and self.exp.is_real and other.is_real:
             return Pow(self.base, self.exp * other)
