@@ -28,8 +28,7 @@ class Symbol(AtomicExpr, Boolean):
 
     is_Symbol = True
 
-    def __new__(cls, name, commutative=True, dummy=False,
-                **assumptions):
+    def __new__(cls, name, commutative=True, dummy=False):
         """if dummy == True, then this Symbol is totally unique, i.e.::
 
         >>> from sympy import Symbol
@@ -45,19 +44,23 @@ class Symbol(AtomicExpr, Boolean):
 
         # XXX compatibility stuff
         if dummy==True:
-            return Dummy(name, commutative=commutative, **assumptions)
+            return Dummy(name, commutative=commutative)
         else:
-            return Symbol.__xnew_cached_(cls, name, commutative, **assumptions)
+            return Symbol.__xnew_cached_(cls, name, commutative)
 
-    def __new_stage2__(cls, name, commutative=True, **assumptions):
+    def __new_stage2__(cls, name, commutative=True):
         assert isinstance(name, str),`type(name)`
-        obj = Expr.__new__(cls, **assumptions)
+        obj = Expr.__new__(cls)
         obj.is_commutative = commutative
         obj.name = name
         return obj
 
     __xnew__       = staticmethod(__new_stage2__)            # never cached (e.g. dummy)
-    __xnew_cached_ = staticmethod(cacheit(__new_stage2__))   # symbols are always cached
+    __xnew_cached_ = staticmethod(__new_stage2__)   # symbols are always cached
+
+    def __init__(self, name, commutative=True):
+        from sympy.assumptions import global_assumptions
+        global_assumptions.clear_symbol(self)
 
     def __getnewargs__(self):
         return (self.name, self.is_commutative)
@@ -66,11 +69,11 @@ class Symbol(AtomicExpr, Boolean):
         return (self.is_commutative, self.name)
 
     def as_dummy(self):
-        return Dummy(self.name, self.is_commutative, **self.assumptions0)
+        return Dummy(self.name, self.is_commutative)
 
     def __call__(self, *args):
         from function import Function
-        return Function(self.name, nargs=len(args))(*args, **self.assumptions0)
+        return Function(self.name, nargs=len(args))(*args)
 
     def _eval_expand_complex(self, deep=True, **hints):
             return C.re(self) + C.im(self)*S.ImaginaryUnit
@@ -100,8 +103,8 @@ class Dummy(Symbol):
 
     __slots__ = ['dummy_index']
 
-    def __new__(cls, name, commutative=True, **assumptions):
-        obj = Symbol.__xnew__(cls, name, commutative=commutative, **assumptions)
+    def __new__(cls, name, commutative=True):
+        obj = Symbol.__xnew__(cls, name, commutative=commutative)
 
         Dummy.dummycount += 1
         obj.dummy_index = Dummy.dummycount
@@ -118,8 +121,8 @@ class Temporary(Dummy):
 
     __slots__ = []
 
-    def __new__(cls, **assumptions):
-        obj = Dummy.__new__(cls, 'T%i' % Dummy.dummycount, **assumptions)
+    def __new__(cls):
+        obj = Dummy.__new__(cls, 'T%i' % Dummy.dummycount)
         return obj
 
     def __getnewargs__(self):
@@ -133,21 +136,21 @@ class Wild(Symbol):
 
     __slots__ = ['exclude', 'properties']
 
-    def __new__(cls, name, exclude=None, properties=None, **assumptions):
+    def __new__(cls, name, exclude=None, properties=None):
         if type(exclude) is list:
             exclude = tuple(exclude)
         if type(properties) is list:
             properties = tuple(properties)
 
-        return Wild.__xnew__(cls, name, exclude, properties, **assumptions)
+        return Wild.__xnew__(cls, name, exclude, properties)
 
     def __getnewargs__(self):
         return (self.name, self.exclude, self.properties)
 
     @staticmethod
     @cacheit
-    def __xnew__(cls, name, exclude, properties, **assumptions):
-        obj = Symbol.__xnew__(cls, name, **assumptions)
+    def __xnew__(cls, name, exclude, properties):
+        obj = Symbol.__xnew__(cls, name)
 
         if exclude is None:
             obj.exclude = None
@@ -181,8 +184,8 @@ class Wild(Symbol):
         repl_dict[self] = expr
         return repl_dict
 
-    def __call__(self, *args, **assumptions):
-        return WildFunction(self.name, nargs=len(args))(*args, **assumptions)
+    def __call__(self, *args):
+        return WildFunction(self.name, nargs=len(args))(*args)
 
 
 def symbols(*names, **kwargs):

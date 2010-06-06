@@ -4,6 +4,9 @@ AskHandlers related to order relations: positive, negative, etc.
 from sympy.utilities import all # python2.4 compatibility
 from sympy.assumptions import Q, ask, refine_logic
 from sympy.assumptions.handlers import CommonHandler
+from sympy.logic import And
+
+from sympy.core import C
 
 
 class AskNegativeHandler(CommonHandler):
@@ -60,16 +63,23 @@ class AskNegativeHandler(CommonHandler):
         if expr.is_number:
             return AskNegativeHandler._number(expr, assumptions)
         result = None
+        rest = []
+        positive = True
         for arg in expr.args:
-            if result is None:
-                result = False
-            if ask(arg, Q.nonpositive, assumptions):
-                result = not result
-            elif ask(arg, Q.positive, assumptions):
-                pass
-            else:
-                return
-        return result
+            if ask(arg, Q.zero, assumptions):
+                return True
+            if ask(arg, Q.positive, assumptions):
+                continue
+            if ask(arg, Q.negative, assumptions):
+                positive = not positive
+                continue
+            rest.append(arg)
+        if not rest:
+            return not positive
+        if positive:
+            return Q.nonpositive(C.Mul(*rest))
+        else:
+            return ~Q.nonpositive(C.Mul(*rest))
 
     @staticmethod
     def Pow(expr, assumptions):
@@ -116,11 +126,7 @@ class AskNonZeroHandler(CommonHandler):
 
     @staticmethod
     def Mul(expr, assumptions):
-        for arg in expr.args:
-            result = ask(arg, Q.nonzero, assumptions)
-            if result: continue
-            return result
-        return True
+        return And(*[refine_logic(Q.nonzero(arg), assumptions) for arg in expr.args])
 
     @staticmethod
     def Pow(expr, assumptions):
@@ -160,15 +166,23 @@ class AskPositiveHandler(CommonHandler):
     def Mul(expr, assumptions):
         if expr.is_number:
             return AskPositiveHandler._number(expr, assumptions)
-        result = True
+        rest = []
+        positive = True
         for arg in expr.args:
-            if ask(arg, Q.nonnegative, assumptions):
+            if ask(arg, Q.zero, assumptions):
+                return True
+            if ask(arg, Q.positive, assumptions):
                 continue
-            elif ask(arg, Q.nonpositive, assumptions):
-                result = result ^ True
-            else:
-                return
-        return result
+            if ask(arg, Q.negative, assumptions):
+                positive = not positive
+                continue
+            rest.append(arg)
+        if not rest:
+            return positive
+        if positive:
+            return Q.nonnegative(C.Mul(*rest))
+        else:
+            return ~Q.nonnegative(C.Mul(*rest))
 
     @staticmethod
     def Add(expr, assumptions):

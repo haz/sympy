@@ -129,11 +129,15 @@ class AskEvenHandler(CommonHandler):
                 if irrational:
                     break
                 irrational = True
-            else: break
+            else:
+                break
         else:
-            if irrational: return False
-            if even: return True
-            if odd == len(expr.args): return False
+            if irrational:
+                return False
+            if even:
+                return True
+            if odd == len(expr.args):
+                return False
 
     @staticmethod
     def Add(expr, assumptions):
@@ -209,9 +213,4 @@ class AskOddHandler(CommonHandler):
 
     @staticmethod
     def Basic(expr, assumptions):
-        _integer = ask(expr, Q.integer, assumptions)
-        if _integer:
-            _even = ask(expr, Q.even, assumptions)
-            if _even is None: return None
-            return not _even
-        return _integer
+        return refine_logic(Q.integer(expr) & ~Q.even(expr), assumptions)

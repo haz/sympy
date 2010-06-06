@@ -5,6 +5,18 @@ from cache import cacheit
 from core import BasicMeta, BasicType, C
 from sympify import _sympify, sympify, SympifyError
 
+_properties = ['bounded', 'complex', 'composite', 'even',
+        'extended_real', 'imaginary', 'infinitesimal', 'infinity', 'integer',
+        'irrational', 'rational', 'negative', 'nonzero', 'positive', 'prime',
+        'real', 'odd', 'nonpositive', 'nonnegative', 'zero', 'noninteger',
+        'unbounded', 'finite']
+
+_template = """\
+@property
+def is_%s(self):
+    from sympy.assumptions import Q, ask
+    return ask(Q.%s(self), Q.is_true)"""
+
 class Basic(object):
     """
     Base class for all objects in sympy.
@@ -43,8 +55,7 @@ class Basic(object):
     __metaclass__ = BasicMeta
 
     __slots__ = ['_mhash',              # hash value
-                 '_args',               # arguments
-                 '_assume_type_keys',   # assumptions typeinfo keys
+                 '_args'                # arguments
                 ]
 
     # To be overridden with True in the appropriate subclasses
@@ -65,7 +76,10 @@ class Basic(object):
     is_Poly = False
     is_AlgebraicNumber = False
 
-    def __new__(cls, *args, **assumptions):
+    is_comparable = False
+    is_commutative = None
+
+    def __new__(cls, *args):
         obj = object.__new__(cls)
 
         obj._mhash = None # will be set by __hash__ method.
@@ -279,6 +293,9 @@ class Basic(object):
     def __str__(self):
         from sympy.printing import sstr
         return sstr(self)
+
+    for name in _properties:
+        exec _template % (name, name)
 
     def atoms(self, *types):
         """Returns the atoms that form the current object.

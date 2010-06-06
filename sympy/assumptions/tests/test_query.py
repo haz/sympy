@@ -1,7 +1,7 @@
 from sympy.core import Symbol, symbols, S, Rational, Integer, I, pi, oo
 from sympy.functions import exp, log, sin, cos, sign, re, im, sqrt
 from sympy.assumptions import (Assume, global_assumptions, Q, ask,
-    register_handler, remove_handler)
+    register_handler, remove_handler, refine_logic)
 from sympy.assumptions.handlers import AskHandler
 from sympy.utilities.pytest import raises, XFAIL
 
@@ -704,7 +704,7 @@ def test_negative():
     assert ask(x, Q.negative, Assume(x, Q.prime, False)) == None
 
     assert ask(-x, Q.negative, Assume(x, Q.positive)) == True
-    assert ask(-x, Q.negative, Assume(x, Q.positive, False)) == None
+    assert ask(-x, Q.negative, Assume(x, Q.positive, False)) == False
     assert ask(-x, Q.negative, Assume(x, Q.negative)) == False
     assert ask(-x, Q.negative, Assume(x, Q.positive)) == True
 
@@ -762,6 +762,8 @@ def test_nonzero():
     assert ask(abs(x), Q.nonzero, Assume(x, Q.nonzero)) == True
 
     assert ask(exp(x), Q.nonzero) == True
+
+    assert refine_logic(Q.zero(x * y)) == Q.zero(x) | Q.zero(y)
 
 def test_odd():
     x, y, z, t = symbols('x y z t')
@@ -911,6 +913,12 @@ def test_real():
     # Q.complexes
     assert ask(re(x), Q.real) == True
     assert ask(im(x), Q.real) == True
+
+def test_real_products():
+    x,y,n,p = symbols('x y n p')
+    assert ask(Q.real(x*y), assumptions = Q.real(x) & ~Q.real(y)) == False
+    assert ask(Q.real(y*n*p), 
+            assumptions = ~Q.real(y) & Q.positive(p) & Q.negative(n)) == False
 
 def test_algebraic():
     x, y = symbols('x,y')

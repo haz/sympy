@@ -1,7 +1,9 @@
 from sympy import *
 
 x, y, z = symbols('xyz')
-k, m, n = symbols('kmn', integer=True)
+# FIXME: The integer assumption on k,m,n should probably go into global assumptions here.
+#k, m, n = symbols('kmn', integer=True)
+k, m, n = symbols('kmn')
 f, g, h = map(Function, 'fgh')
 
 def init_printing(pretty_print=True, order=None, use_unicode=None):

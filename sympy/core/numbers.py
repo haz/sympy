@@ -152,10 +152,8 @@ class Number(AtomicExpr):
 
     Rational(1) + sqrt(Rational(2))
     """
-    is_commutative = True
     is_comparable = True
-    is_bounded = True
-    is_finite = True
+    is_commutative = True
 
     __slots__ = []
 
@@ -253,9 +251,6 @@ class Real(Number):
     ======
         - Real(x) with x being a Python int/long will return Integer(x)
     """
-    is_real = True
-    is_irrational = False
-    is_integer = False
 
     __slots__ = ['_mpf_', '_prec']
 
@@ -328,12 +323,6 @@ class Real(Number):
 
     def _hashable_content(self):
         return (self._mpf_, self._prec)
-
-    def _eval_is_positive(self):
-        return self.num > 0
-
-    def _eval_is_negative(self):
-        return self.num < 0
 
     def __neg__(self):
         return Real._new(mlib.mpf_neg(self._mpf_), self._prec)
@@ -523,9 +512,6 @@ class Rational(Number):
         4
 
     """
-    is_real = True
-    is_integer = False
-    is_rational = True
 
     __slots__ = ['p', 'q']
 
@@ -573,12 +559,6 @@ class Rational(Number):
     def _hashable_content(self):
         return (self.p, self.q)
 
-    def _eval_is_positive(self):
-        return self.p > 0
-
-    def _eval_is_zero(self):
-        return self.p == 0
-
     def __neg__(self):
         return Rational(-self.p, self.q)
 
@@ -610,14 +590,14 @@ class Rational(Number):
             return other + self
         if isinstance(other, Rational):
             # FIXME
-            #if self.is_unbounded:
-                #if other.is_bounded:
-                    #return self
-                #elif self==other:
-                    #return self
-            #else:
-                #if other.is_unbounded:
-                    #return other
+            if self.is_bounded is False:
+                if other.is_bounded:
+                    return self
+                elif self==other:
+                    return self
+            else:
+                if other.is_bounded is False:
+                    return other
             return Rational(self.p * other.q + self.q * other.p, self.q * other.q)
         return Number.__add__(self, other)
 
@@ -827,7 +807,6 @@ def int_trace(f):
 class Integer(Rational):
 
     q = 1
-    is_integer = True
 
     is_Integer = True
 
@@ -965,9 +944,6 @@ class Integer(Rational):
         return Rational.__le__(a, b)
 
     ########################################
-
-    def _eval_is_odd(self):
-        return bool(self.p % 2)
 
     def _eval_power(b, e):
         """
@@ -1158,12 +1134,6 @@ class Zero(Singleton, Integer):
 
     p = 0
     q = 1
-    is_positive = False
-    is_negative = False
-    is_finite = False
-    is_zero = True
-    is_prime = False
-    is_composite = False
 
     __slots__ = []
 
