@@ -4,7 +4,7 @@ AskHandlers related to order relations: positive, negative, etc.
 from sympy.utilities import all # python2.4 compatibility
 from sympy.assumptions import Q, ask, refine_logic
 from sympy.assumptions.handlers import CommonHandler
-from sympy.logic import And
+from sympy.logic import And, Or
 
 from sympy.core import C
 
@@ -62,24 +62,7 @@ class AskNegativeHandler(CommonHandler):
     def Mul(expr, assumptions):
         if expr.is_number:
             return AskNegativeHandler._number(expr, assumptions)
-        result = None
-        rest = []
-        positive = True
-        for arg in expr.args:
-            if ask(arg, Q.zero, assumptions):
-                return True
-            if ask(arg, Q.positive, assumptions):
-                continue
-            if ask(arg, Q.negative, assumptions):
-                positive = not positive
-                continue
-            rest.append(arg)
-        if not rest:
-            return not positive
-        if positive:
-            return Q.nonpositive(C.Mul(*rest))
-        else:
-            return ~Q.nonpositive(C.Mul(*rest))
+        return refine_logic(Q.nonnegative(-expr), assumptions)
 
     @staticmethod
     def Pow(expr, assumptions):
@@ -113,23 +96,32 @@ class AskNonZeroHandler(CommonHandler):
     """
 
     @staticmethod
+    def _number(expr, assumptions=None):
+        return expr.evalf() != 0
+
+    @staticmethod
     def Basic(expr, assumptions):
         if expr.is_number:
-            # if there are no symbols just evalf
-            return expr.evalf() != 0
+            return AskNonZeroHandler._number(expr)
 
     @staticmethod
     def Add(expr, assumptions):
+        if expr.is_number:
+            return AskNonZeroHandler._number(expr)
         if all([ask(x, Q.positive, assumptions) for x in expr.args]) \
             or all([ask(x, Q.negative, assumptions) for x in expr.args]):
             return True
 
     @staticmethod
     def Mul(expr, assumptions):
+        if expr.is_number:
+            return AskNonZeroHandler._number(expr)
         return And(*[refine_logic(Q.nonzero(arg), assumptions) for arg in expr.args])
 
     @staticmethod
     def Pow(expr, assumptions):
+        if expr.is_number:
+            return AskNonZeroHandler._number(expr)
         return refine_logic(Q.nonzero(expr.base), assumptions)
 
     @staticmethod
@@ -167,22 +159,30 @@ class AskPositiveHandler(CommonHandler):
         if expr.is_number:
             return AskPositiveHandler._number(expr, assumptions)
         rest = []
+        nullable = []
         positive = True
         for arg in expr.args:
             if ask(arg, Q.zero, assumptions):
                 return True
             if ask(arg, Q.positive, assumptions):
                 continue
+            elif ask(arg, Q.nonnegative, assumptions):
+                nullable.append(arg)
+                continue
             if ask(arg, Q.negative, assumptions):
+                positive = not positive
+                continue
+            elif ask(arg, Q.nonpositive, assumptions):
+                nullable.append(arg)
                 positive = not positive
                 continue
             rest.append(arg)
         if not rest:
-            return positive
+            return Or(positive, Or(*[Q.zero(x) for x in nullable]))
         if positive:
-            return Q.nonnegative(C.Mul(*rest))
+            return Q.nonnegative(C.Mul(*rest)) | Or(*[Q.zero(x) for x in nullable])
         else:
-            return ~Q.nonnegative(C.Mul(*rest))
+            return ~Q.nonnegative(C.Mul(*rest)) | Or(*[Q.zero(x) for x in nullable])
 
     @staticmethod
     def Add(expr, assumptions):

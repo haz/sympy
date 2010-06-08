@@ -1,5 +1,6 @@
 from sympy.logic.boolalg import conjuncts
 from sympy.assumptions import Q, ask, refine_logic
+from sympy.logic.inference import satisfiable
 
 class AskHandler(object):
     """Base class that all Ask Handlers must inherit"""
@@ -55,4 +56,11 @@ class TautologicalHandler(AskHandler):
 
     @staticmethod
     def BooleanFunction(expr, assumptions):
-        return expr.func(*[refine_logic(arg, assumptions) for arg in expr.args])
+        result = expr.func(*[refine_logic(arg, assumptions) for arg in expr.args])
+        if result in (True, False):
+            return result
+        if satisfiable(result) is False:
+            return False
+        if satisfiable(~result) is False:
+            return True
+        return result
