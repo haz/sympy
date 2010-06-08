@@ -12,7 +12,10 @@ def test_bug1():
     assert re(x) != x
 
 a = Symbol("a")
-b = Symbol("b", positive=True)
+# FIXME: Make sure that any test assuming b needs to be positive is changed
+#         to use the new assumption interface.
+#b = Symbol("b", positive=True)
+b = Symbol("b")
 c = Symbol("c")
 
 def test_Symbol():

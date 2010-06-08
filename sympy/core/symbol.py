@@ -55,10 +55,10 @@ class Symbol(AtomicExpr, Boolean):
         obj.name = name
         return obj
 
-    __xnew__       = staticmethod(__new_stage2__)            # never cached (e.g. dummy)
+    __xnew__       = staticmethod(__new_stage2__)   # never cached (e.g. dummy)
     __xnew_cached_ = staticmethod(__new_stage2__)   # symbols are always cached
 
-    def __init__(self, name, commutative=True):
+    def __init__(self, name, commutative=True, dummy=False):
         from sympy.assumptions import global_assumptions
         global_assumptions.clear_symbol(self)
 
@@ -143,6 +143,10 @@ class Wild(Symbol):
             properties = tuple(properties)
 
         return Wild.__xnew__(cls, name, exclude, properties)
+
+    def __init__(self, name, exclude=None, properties=None):
+        """Dummy constructor needed to accept the kwargs."""
+        pass
 
     def __getnewargs__(self):
         return (self.name, self.exclude, self.properties)

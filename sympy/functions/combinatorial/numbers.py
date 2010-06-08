@@ -23,7 +23,6 @@ from sympy.utilities.memoization import recurrence_memo
 # Dummy symbol used for computing polynomial sequences
 _sym = Symbol('x')
 
-
 #----------------------------------------------------------------------------#
 #                                                                            #
 #                           Fibonacci numbers                                #
