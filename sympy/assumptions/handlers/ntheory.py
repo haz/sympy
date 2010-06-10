@@ -1,7 +1,7 @@
 """
 Handlers for keys related to number theory: prime, even, odd, etc.
 """
-from sympy.assumptions import Q, ask
+from sympy.assumptions import Q, ask, refine_logic
 from sympy.assumptions.handlers import CommonHandler
 from sympy.ntheory import isprime
 
