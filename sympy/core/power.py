@@ -73,16 +73,21 @@ class Pow(Expr):
     def __new__(cls, b, e, evaluate=False):
         b = _sympify(b)
         e = _sympify(e)
-        if evaluate is False:
-            return Expr.__new__(cls, b, e)
+
         if e is S.Zero:
             return S.One
         if e is S.One:
             return b
-        obj = b._eval_power(e)
+
+        obj = None
+
+        if evaluate:
+            obj = b._eval_power(e)
+
         if obj is None:
             obj = Expr.__new__(cls, b, e)
             obj.is_commutative = (b.is_commutative and e.is_commutative)
+
         return obj
 
     @property
