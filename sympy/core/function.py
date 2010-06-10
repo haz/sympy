@@ -30,7 +30,8 @@ Example:
 
 """
 
-from basic import Basic, BasicMeta, Atom, S, C
+from basic import Basic, BasicMeta, Atom, C
+from symbol import S
 from expr import Expr, AtomicExpr
 from cache import cacheit
 from itertools import repeat
