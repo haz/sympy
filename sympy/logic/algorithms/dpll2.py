@@ -52,7 +52,7 @@ class SATSolver(object):
      normal form.
     """
 
-    def __init__(self, clauses, variables, var_settings, heuristic = 'vsids', clause_learning = 'simple', INTERVAL = 500):
+    def __init__(self, clauses, variables, var_settings, heuristic = 'vsids', clause_learning = 'none', INTERVAL = 500):
         self.var_settings = var_settings
         self.heuristic = heuristic
         self.is_unsatisfied = False
@@ -69,7 +69,10 @@ class SATSolver(object):
             self.heur_lit_assigned = self.vsids_lit_assigned
             self.heur_lit_unset = self.vsids_lit_unset
             self.heur_clause_added = self.vsids_clause_added
-            self.update_functions.append(self.vsids_decay)
+
+            # Note: Uncomment this if/when clause learning is enabled
+            #self.update_functions.append(self.vsids_decay)
+
         else:
             raise NotImplementedError
 
@@ -77,6 +80,9 @@ class SATSolver(object):
             self.add_learned_clause = self.simple_add_learned_clause
             self.compute_conflict = self.simple_compute_conflict
             self.update_functions.append(self.simple_clean_clauses)
+        elif 'none' == clause_learning:
+            self.add_learned_clause = lambda x: None
+            self.compute_conflict = lambda: None
         else:
             raise NotImplementedError
 
