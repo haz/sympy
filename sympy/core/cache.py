@@ -6,6 +6,8 @@
 CACHE = []  # [] of
             #    (item, {} or tuple of {})
 
+WORKING = False
+
 from sympy.core.logic import fuzzy_bool
 
 def print_cache():
@@ -81,6 +83,13 @@ def __cacheit(func):
         with identical args but a kw_arg of True) then two different
         hashes will be computed and the two objects will not be identical.
         """
+        global WORKING
+        first = False
+
+        if not WORKING:
+            WORKING = True
+            first = True
+
         if kw_args:
             keys = kw_args.keys()
 
@@ -94,11 +103,16 @@ def __cacheit(func):
         else:
             k = args
         k = k + tuple(map(lambda x: type(x), k))
+
         try:
-            return func_cache_it_cache[k]
+            r = func_cache_it_cache[k]
         except KeyError:
-            pass
-        func_cache_it_cache[k] = r = func(*args, **kw_args)
+            func_cache_it_cache[k] = r = func(*args, **kw_args)
+
+        if first:
+            WORKING = False
+            clear_cache()
+
         return r
 
     wrapper.__doc__ = func.__doc__
